@@ -1,0 +1,458 @@
+
+Private Sub cmb_Product_Change()
+
+Dim sh As Worksheet
+Set sh = ThisWorkbook.Sheets("Product_Master")
+
+If Me.cmb_Product.Value = "" Or Me.cmb_Type.Value = "" Then Me.txt_Rate.Value = ""
+
+If Me.cmb_Product.Value <> "" Then
+    If Me.cmb_Type.Value = "Sale" Then
+        Me.txt_Rate.Value = Format(Application.WorksheetFunction.VLookup(Me.cmb_Product.Value, sh.Range("B:C"), 2, 0), "0.00")
+    End If
+    
+    If Me.cmb_Type.Value = "Purchase" Then
+        Me.txt_Rate.Value = Format(Application.WorksheetFunction.VLookup(Me.cmb_Product.Value, sh.Range("B:D"), 3, 0), "0.00")
+    End If
+End If
+
+End Sub
+
+Private Sub cmb_Type_Change()
+
+Dim sh As Worksheet
+Set sh = ThisWorkbook.Sheets("Product_Master")
+
+If Me.cmb_Product.Value = "" Or Me.cmb_Type.Value = "" Then Me.txt_Rate.Value = ""
+
+If Me.cmb_Product.Value <> "" Then
+    If Me.cmb_Type.Value = "Sale" Then
+        Me.txt_Rate.Value = Format(Application.WorksheetFunction.VLookup(Me.cmb_Product.Value, sh.Range("B:C"), 2, 0), "0.00")
+    End If
+    
+    If Me.cmb_Type.Value = "Purchase" Then
+        Me.txt_Rate.Value = Format(Application.WorksheetFunction.VLookup(Me.cmb_Product.Value, sh.Range("B:D"), 3, 0), "0.00")
+    End If
+End If
+End Sub
+
+Private Sub CommandButton1_Click()
+Call Show_Sale_Purchase_Data
+Call Show_Numbers
+End Sub
+
+Private Sub CommandButton2_Click()
+Call Available_Stocks
+End Sub
+ 
+Private Sub CommandButton3_Click()
+
+''''''''''''' Validation ''''''''''''''
+
+If Me.cmb_Product.Value = "" Then
+    MsgBox "Please select the product Name", vbCritical
+    Exit Sub
+End If
+
+If Me.cmb_Type.Value = "" Then
+    MsgBox "Please select the transaction type", vbCritical
+    Exit Sub
+End If
+
+If IsNumeric(Me.txt_Qty) = False Then
+    MsgBox "Please select the correct Quantity", vbCritical
+    Exit Sub
+End If
+
+
+''''''' Add data
+Dim sh As Worksheet
+Set sh = ThisWorkbook.Sheets("Sale_Purchase")
+
+Dim lr As Long
+lr = Application.WorksheetFunction.CountA(sh.Range("A:A"))
+
+ 
+sh.Range("A" & lr + 1).Value = "=ROW()-1"
+sh.Range("B" & lr + 1).Value = Me.cmb_Product.Value
+sh.Range("C" & lr + 1).Value = Me.cmb_Type.Value
+sh.Range("D" & lr + 1).Value = Me.txt_Qty.Value
+sh.Range("E" & lr + 1).Value = Me.txt_Rate.Value
+sh.Range("F" & lr + 1).Value = Me.txt_Qty.Value * Me.txt_Rate.Value
+sh.Range("G" & lr + 1).Value = Me.txt_Date.Value
+
+If Me.cmb_Type.Value = "Purchase" Then
+    sh.Range("H" & lr + 1).Value = "NA"
+Else
+    sh.Range("H" & lr + 1).Value = sh.Range("F" & lr + 1).Value - Application.WorksheetFunction.VLookup(Me.cmb_Product.Value, ThisWorkbook.Sheets("Product_Master").Range("B:D"), 3, 0) * Me.txt_Qty
+End If
+
+
+''' clear boxex
+Me.cmb_Product.Value = ""
+Me.cmb_Type.Value = ""
+Me.txt_Qty.Value = ""
+Me.txt_id.Value = ""
+
+'''''' Refresh data
+Call Available_Stocks
+Call Show_Sale_Purchase_Data
+Call Show_Numbers
+
+'''''''''''''''''
+
+MsgBox "Data added successfully", vbInformation
+
+End Sub
+
+Private Sub CommandButton4_Click()
+
+''''''''''''' Validation ''''''''''''''
+If Me.txt_id.Value = "" Then
+    MsgBox "Please double click on record to update", vbCritical
+    Exit Sub
+End If
+
+If Me.cmb_Product.Value = "" Then
+    MsgBox "Please select the product Name", vbCritical
+    Exit Sub
+End If
+
+If Me.cmb_Type.Value = "" Then
+    MsgBox "Please select the transaction type", vbCritical
+    Exit Sub
+End If
+
+If IsNumeric(Me.txt_Qty) = False Then
+    MsgBox "Please select the correct Quantity", vbCritical
+    Exit Sub
+End If
+
+
+''''''' Add data
+Dim sh As Worksheet
+Set sh = ThisWorkbook.Sheets("Sale_Purchase")
+
+Dim lr As Long
+lr = Application.WorksheetFunction.Match(CLng(Me.txt_id), sh.Range("A:A"), 0)
+
+
+sh.Range("A" & lr).Value = "=ROW()-1"
+sh.Range("B" & lr).Value = Me.cmb_Product.Value
+sh.Range("C" & lr).Value = Me.cmb_Type.Value
+sh.Range("D" & lr).Value = Me.txt_Qty.Value
+sh.Range("E" & lr).Value = Me.txt_Rate.Value
+sh.Range("F" & lr).Value = Me.txt_Qty.Value * Me.txt_Rate.Value
+sh.Range("G" & lr).Value = Me.txt_Date.Value
+
+If Me.cmb_Type.Value = "Purchase" Then
+    sh.Range("H" & lr).Value = "NA"
+Else
+    sh.Range("H" & lr).Value = sh.Range("F" & lr).Value - Application.WorksheetFunction.VLookup(Me.cmb_Product.Value, ThisWorkbook.Sheets("Product_Master").Range("B:D"), 3, 0) * Me.txt_Qty
+End If
+
+
+''' clear boxex
+Me.cmb_Product.Value = ""
+Me.cmb_Type.Value = ""
+Me.txt_Qty.Value = ""
+Me.txt_id.Value = ""
+
+'''''' Refresh data
+Call Available_Stocks
+Call Show_Sale_Purchase_Data
+Call Show_Numbers
+
+'''''''''''''''''
+
+MsgBox "Data updated successfully", vbInformation
+End Sub
+
+Private Sub CommandButton5_Click()
+    Dim nwb As Workbook
+    Set nwb = Workbooks.Add
+    
+    ThisWorkbook.Sheets("Sale_Purchase_Display").UsedRange.Copy nwb.Sheets(1).Range("A1")
+    
+End Sub
+
+Private Sub CommandButton6_Click()
+
+    Dim nwb As Workbook
+    Set nwb = Workbooks.Add
+    
+    ThisWorkbook.Sheets("Inventory").UsedRange.Copy nwb.Sheets(1).Range("A1")
+    
+
+End Sub
+
+Private Sub CommandButton7_Click()
+frm_Product_Master.Show False
+End Sub
+
+Private Sub CommandButton8_Click()
+ThisWorkbook.Save
+MsgBox "Data has been saved", vbInformation
+End Sub
+
+Private Sub Image6_BeforeDragOver(ByVal Cancel As MSForms.ReturnBoolean, ByVal Data As MSForms.DataObject, ByVal X As Single, ByVal Y As Single, ByVal DragState As MSForms.fmDragState, ByVal Effect As MSForms.ReturnEffect, ByVal Shift As Integer)
+
+End Sub
+
+Private Sub Image6_Click()
+Call Calendar.SelectedDate(Me.txt_Start_Date)
+End Sub
+
+Private Sub Image7_Click()
+Call Calendar.SelectedDate(Me.txt_End_Date)
+End Sub
+
+Private Sub Image8_BeforeDragOver(ByVal Cancel As MSForms.ReturnBoolean, ByVal Data As MSForms.DataObject, ByVal X As Single, ByVal Y As Single, ByVal DragState As MSForms.fmDragState, ByVal Effect As MSForms.ReturnEffect, ByVal Shift As Integer)
+
+End Sub
+
+Private Sub Image8_Click()
+Call Calendar.SelectedDate(Me.txt_Date)
+End Sub
+ 
+  
+ 
+
+Private Sub Label2_Click()
+
+End Sub
+
+Private Sub ListBox2_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
+
+    Me.txt_id.Value = Me.ListBox2.List(Me.ListBox2.ListIndex, 0)
+    Me.cmb_Product.Value = Me.ListBox2.List(Me.ListBox2.ListIndex, 1)
+    Me.cmb_Type.Value = Me.ListBox2.List(Me.ListBox2.ListIndex, 2)
+    Me.txt_Qty.Value = Me.ListBox2.List(Me.ListBox2.ListIndex, 3)
+    Me.txt_Date.Value = Format(Me.ListBox2.List(Me.ListBox2.ListIndex, 6), "D-MMM-YYYY")
+
+    
+End Sub
+
+Private Sub OptionButton1_Click()
+    Call Show_Sale_Purchase_Data
+End Sub
+
+Private Sub OptionButton2_Click()
+    Call Show_Sale_Purchase_Data
+End Sub
+
+Private Sub OptionButton3_Click()
+    Call Show_Sale_Purchase_Data
+End Sub
+
+Private Sub txt_id_Change()
+
+End Sub
+
+Private Sub txt_Search_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer)
+    If KeyCode = 13 Then
+        Call Available_Stocks
+    End If
+End Sub
+
+Private Sub UserForm_Activate()
+Application.WindowState = xlMaximized
+Me.Height = Application.Height
+Me.Width = Application.Width
+
+
+End Sub
+
+ 
+
+Sub Refresh_Product_List()
+
+Application.ScreenUpdating = False
+
+Dim sh As Worksheet
+Set sh = ThisWorkbook.Sheets("Product_Master")
+
+Dim i As Integer
+
+Me.cmb_Product.Clear
+Me.cmb_Product.AddItem ""
+If Application.WorksheetFunction.CountA(sh.Range("A:A")) > 1 Then
+    For i = 2 To Application.WorksheetFunction.CountA(sh.Range("A:A"))
+        Me.cmb_Product.AddItem sh.Range("B" & i).Value
+    Next i
+End If
+ 
+End Sub
+
+Sub Available_Stocks()
+
+Application.ScreenUpdating = False
+
+Dim PM_sh As Worksheet
+Set PM_sh = ThisWorkbook.Sheets("Product_Master")
+
+Dim Inv_sh As Worksheet
+Set Inv_sh = ThisWorkbook.Sheets("Inventory")
+
+Inv_sh.Cells.ClearContents
+
+'''''' Copy the Product
+PM_sh.AutoFilterMode = False
+PM_sh.Range("B:B").Copy Inv_sh.Range("A1")
+ 
+
+'''''' Add the headers
+Inv_sh.Range("B1").Value = "Purchase"
+Inv_sh.Range("C1").Value = "Sale"
+Inv_sh.Range("D1").Value = "Available Stocks"
+Inv_sh.Range("E1").Value = "Stocks Value"
+
+Dim lr As Integer
+lr = Application.WorksheetFunction.CountA(Inv_sh.Range("A:A"))
+
+'''' Put the formula
+If lr > 1 Then
+    Inv_sh.Range("B2").Value = "=SUMIFS(Sale_Purchase!D:D,Sale_Purchase!B:B,A2,Sale_Purchase!C:C,$B$1)"
+    Inv_sh.Range("C2").Value = "=SUMIFS(Sale_Purchase!D:D,Sale_Purchase!B:B,A2,Sale_Purchase!C:C,$C$1)"
+    Inv_sh.Range("D2").Value = "=B2-C2"
+    Inv_sh.Range("E2").Value = "=VLOOKUP(A2,Product_Master!B:C,2,0)*D2"
+    
+    If lr > 2 Then
+        Inv_sh.Range("B2:E" & lr).FillDown
+    End If
+    Inv_sh.Calculate
+    Inv_sh.UsedRange.Copy
+    Inv_sh.UsedRange.PasteSpecial xlPasteValues
+End If
+
+''''' Sort data
+Inv_sh.UsedRange.Sort key1:=Inv_sh.Range("D1"), order1:=xlAscending, Header:=xlYes
+   
+''''''' Display data in List box
+
+
+Dim invd_sh As Worksheet
+Set invd_sh = ThisWorkbook.Sheets("Inventory_Display")
+ 
+invd_sh.UsedRange.ClearContents
+ 
+If Me.txt_Search.Value <> "" Then
+    Inv_sh.UsedRange.AutoFilter 1, "*" & Me.txt_Search.Value & "*"
+End If
+
+Inv_sh.UsedRange.Copy
+invd_sh.Range("A1").PasteSpecial xlPasteValuesAndNumberFormats
+Inv_sh.AutoFilterMode = False
+
+lr = Application.WorksheetFunction.CountA(invd_sh.Range("A:A"))
+
+
+If lr = 1 Then lr = 2
+
+With Me.ListBox1
+   .ColumnCount = 5
+   .ColumnHeads = True
+   .ColumnWidths = "100,0,0,100,0"
+   .RowSource = "Inventory_Display!A2:E" & lr
+End With
+ 
+End Sub
+
+
+Sub Show_Sale_Purchase_Data()
+
+Application.ScreenUpdating = False
+
+Dim sp_sh As Worksheet
+Set sp_sh = ThisWorkbook.Sheets("Sale_Purchase")
+
+Dim spd_sh As Worksheet
+Set spd_sh = ThisWorkbook.Sheets("Sale_Purchase_Display")
+
+
+sp_sh.AutoFilterMode = False
+spd_sh.AutoFilterMode = False
+spd_sh.UsedRange.ClearContents
+
+''''' Copy data from Sale_Purchase worksheet to Sale_Purchase_Display worksheet
+
+sp_sh.Range("G:G").NumberFormat = "D-MMM-YY"
+sp_sh.Range("E:F").NumberFormat = "0.00"
+sp_sh.Range("D:D").NumberFormat = "0"
+
+sp_sh.UsedRange.AutoFilter 7, ">=" & Me.txt_Start_Date.Value, xlAnd, "<=" & Me.txt_End_Date.Value
+
+If Me.OptionButton2.Value = True Then   ''' Filter Purchase
+    sp_sh.UsedRange.AutoFilter 3, "Purchase"
+End If
+
+If Me.OptionButton3.Value = True Then   ''' Filter Sale
+    sp_sh.UsedRange.AutoFilter 3, "Sale"
+End If
+
+sp_sh.UsedRange.Copy
+spd_sh.Range("A1").PasteSpecial xlPasteValuesAndNumberFormats
+
+sp_sh.AutoFilterMode = False
+
+
+'''''''''' Display data in list box
+Dim lr As Long
+lr = Application.WorksheetFunction.CountA(spd_sh.Range("A:A"))
+
+If lr = 1 Then lr = 2
+
+With Me.ListBox2
+    .ColumnCount = 8
+    .ColumnHeads = True
+    .ColumnWidths = "0,180,100,100,100,100,100,0"
+    .RowSource = "Sale_Purchase_Display!A2:H" & lr
+End With
+
+
+End Sub
+
+Sub Show_Numbers()
+
+Application.ScreenUpdating = False
+
+Dim sh As Worksheet
+Set sh = ThisWorkbook.Sheets("Report")
+
+sh.Range("C1").Value = Me.txt_Start_Date.Value
+sh.Range("C2").Value = Me.txt_End_Date.Value
+sh.Calculate
+
+Me.lbl_Purchase.Caption = Format(sh.Range("C5").Value, "0.00")
+Me.lbl_Sale.Caption = Format(sh.Range("C6").Value, "0.00")
+Me.lbl_Profit.Caption = Format(sh.Range("C7").Value, "0.00")
+Me.lbl_Inventory_Qty.Caption = Format(sh.Range("C8").Value, "0")
+Me.lbl_inventory_Amt.Caption = Format(sh.Range("C9").Value, "0.00")
+
+
+
+End Sub
+
+
+Private Sub UserForm_Initialize()
+    Application.ScreenUpdating = False
+    
+    '''''' Default Date Settings
+    Me.txt_Date.Value = Format(Date, "D-MMM-YYYY")
+    Me.txt_Start_Date.Value = Format(Date, "D-MMM-YYYY")
+    Me.txt_End_Date.Value = Format(Date, "D-MMM-YYYY")
+     
+    With Me.cmb_Type
+        .Clear
+        .AddItem ""
+        .AddItem "Sale"
+        .AddItem "Purchase"
+    
+    End With
+    
+    Call Refresh_Product_List
+    Call Available_Stocks
+    Call Show_Sale_Purchase_Data
+    Call Show_Numbers
+     
+End Sub
