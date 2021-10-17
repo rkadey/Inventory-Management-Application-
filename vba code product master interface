@@ -1,0 +1,156 @@
+Option Explicit
+
+ 
+Sub Show_Product_Master()
+
+Dim sh As Worksheet
+Set sh = ThisWorkbook.Sheets("Product_Master")
+
+Dim lr As Long
+lr = Application.WorksheetFunction.CountA(sh.Range("A:A"))
+
+If lr = 2 Then lr = 2
+
+With Me.ListBox1
+    .ColumnCount = 4
+    .ColumnHeads = True
+    .ColumnWidths = "50,150,80,80"
+    .RowSource = "Product_Master!A2:D" & lr
+End With
+
+
+
+End Sub
+  
+Private Sub CommandButton3_Click()
+
+Dim sh As Worksheet
+Set sh = ThisWorkbook.Sheets("Product_Master")
+
+
+
+''''''''' Validation '''''''''''
+
+If Me.txt_Product_Name.Value = "" Then
+    MsgBox "Please enter product name", vbCritical
+    Exit Sub
+End If
+
+If IsNumeric(Me.txt_Purchase_Price.Value) = False Then
+    MsgBox "Invalid purchase price", vbCritical
+    Exit Sub
+End If
+
+If IsNumeric(Me.txt_Sale_Price.Value) = False Then
+    MsgBox "Invalid sale price", vbCritical
+    Exit Sub
+End If
+
+If Application.WorksheetFunction.CountIf(sh.Range("B:B"), Me.txt_Product_Name.Value) > 0 Then
+    MsgBox "Product already available", vbCritical
+    Exit Sub
+End If
+
+''''''''' Add data
+Dim lr As Long
+lr = Application.WorksheetFunction.CountA(sh.Range("A:A"))
+
+sh.Range("A" & lr + 1).Value = "=ROW()-1"
+sh.Range("B" & lr + 1).Value = Me.txt_Product_Name.Value
+sh.Range("C" & lr + 1).Value = Me.txt_Sale_Price.Value
+sh.Range("D" & lr + 1).Value = Me.txt_Purchase_Price.Value
+
+'''''''Clear Data
+Me.txt_Product_Name.Value = ""
+Me.txt_Purchase_Price.Value = ""
+Me.txt_Sale_Price.Value = ""
+Me.txt_id.Value = ""
+Call Show_Product_Master
+
+MsgBox "Product has been added", vbInformation
+
+
+
+
+End Sub
+
+Private Sub CommandButton4_Click()
+
+Dim sh As Worksheet
+Set sh = ThisWorkbook.Sheets("Product_Master")
+ 
+''''''''' Validation '''''''''''
+
+If Me.txt_id.Value = "" Then
+    MsgBox "Please double click on record to update", vbCritical
+    Exit Sub
+End If
+
+If Me.txt_Product_Name.Value = "" Then
+    MsgBox "Please enter product name", vbCritical
+    Exit Sub
+End If
+
+If IsNumeric(Me.txt_Purchase_Price.Value) = False Then
+    MsgBox "Invalid purchase price", vbCritical
+    Exit Sub
+End If
+
+If IsNumeric(Me.txt_Sale_Price.Value) = False Then
+    MsgBox "Invalid sale price", vbCritical
+    Exit Sub
+End If
+ 
+
+''''''''' update data
+Dim lr As Long
+lr = Application.WorksheetFunction.Match(CInt(Me.txt_id.Value), sh.Range("A:A"), 0)
+ 
+sh.Range("B" & lr).Value = Me.txt_Product_Name.Value
+sh.Range("C" & lr).Value = Me.txt_Sale_Price.Value
+sh.Range("D" & lr).Value = Me.txt_Purchase_Price.Value
+
+'''''''Clear Data
+Me.txt_Product_Name.Value = ""
+Me.txt_Purchase_Price.Value = ""
+Me.txt_Sale_Price.Value = ""
+Me.txt_id.Value = ""
+
+Call Show_Product_Master
+
+MsgBox "Product has been update", vbInformation
+
+
+End Sub
+
+Private Sub CommandButton5_Click()
+    Dim nwb As Workbook
+    Set nwb = Workbooks.Add
+    
+    ThisWorkbook.Sheets("Product_Master").UsedRange.Copy nwb.Sheets(1).Range("A1")
+    
+End Sub
+
+Private Sub Image1_BeforeDragOver(ByVal Cancel As MSForms.ReturnBoolean, ByVal Data As MSForms.DataObject, ByVal X As Single, ByVal Y As Single, ByVal DragState As MSForms.fmDragState, ByVal Effect As MSForms.ReturnEffect, ByVal Shift As Integer)
+
+End Sub
+
+Private Sub ListBox1_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
+
+Me.txt_id.Value = Me.ListBox1.List(Me.ListBox1.ListIndex, 0)
+Me.txt_Product_Name.Value = Me.ListBox1.List(Me.ListBox1.ListIndex, 1)
+Me.txt_Sale_Price.Value = Me.ListBox1.List(Me.ListBox1.ListIndex, 2)
+Me.txt_Purchase_Price.Value = Me.ListBox1.List(Me.ListBox1.ListIndex, 3)
+
+
+End Sub
+
+Private Sub UserForm_Initialize()
+    Call Show_Product_Master
+End Sub
+
+Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
+    Call frm_Inventory_Management.Refresh_Product_List
+    Call frm_Inventory_Management.Available_Stocks
+    
+End Sub
